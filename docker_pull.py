@@ -166,7 +166,7 @@ for layer in layers:
 	# last layer = config manifest - history - rootfs
 	if layers[-1]['digest'] == layer['digest']:
 		# FIXME: json.loads() automatically converts to unicode, thus decoding values whereas Docker doesn't
-		json_obj = json.loads(confresp.content)
+		json_obj = json.loads(confresp.content.decode('utf-8'))
 		del json_obj['history']
 		try:
 			del json_obj['rootfs']
