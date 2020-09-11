@@ -10,14 +10,19 @@ import tarfile
 import urllib3
 urllib3.disable_warnings()
 
-if len(sys.argv) != 2 :
-	print('Usage:\n\tdocker_pull.py [registry/][repository/]image[:tag|@digest]\n')
+if len(sys.argv) < 2 :
+	print('Usage:\n\tdocker_pull.py [registry/][repository/]image[:tag|@digest] [username] [password]\n')
 	exit(1)
 
 # Look for the Docker image to download
 repo = 'library'
 tag = 'latest'
 imgparts = sys.argv[1].split('/')
+username = ""
+password = ""
+if len(sys.argv) >= 4:
+    username = sys.argv[2] 
+    password = sys.argv[3] 
 try:
     img,tag = imgparts[-1].split('@')
 except ValueError:
@@ -50,7 +55,10 @@ if resp.status_code == 401:
 
 # Get Docker token (this function is useless for unauthenticated registries like Microsoft)
 def get_auth_head(type):
-	resp = requests.get('{}?service={}&scope=repository:{}:pull'.format(auth_url, reg_service, repository), verify=False)
+	if len(username) != 0 and len(password) != 0:
+	    resp = requests.get('{}?service={}&scope=repository:{}:pull'.format(auth_url, reg_service, repository), auth=(username, password),verify=False)
+	else:
+	    resp = requests.get('{}?service={}&scope=repository:{}:pull'.format(auth_url, reg_service, repository), verify=False)
 	access_token = resp.json()['token']
 	auth_head = {'Authorization':'Bearer '+ access_token, 'Accept': type}
 	return auth_head
